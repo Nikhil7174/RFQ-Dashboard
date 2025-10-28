@@ -17,7 +17,7 @@ export const useQuotations = () => {
 
   useEffect(() => {
     dispatch(fetchQuotations(filters));
-  }, [dispatch, filters.status]);
+  }, [dispatch, filters]);
 
   const handleSearch = useCallback(
     (search: string) => {

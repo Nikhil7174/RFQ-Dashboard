@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuotations } from '@/features/quotations/hooks/useQuotations';
 import { Input } from '@/components/ui/input';
@@ -52,21 +52,24 @@ export default function QuotationsList() {
     handleOptimisticStatusUpdate,
   } = useQuotations();
 
+  useEffect(() => {
+    handleSearch(debouncedSearch);
+  }, [debouncedSearch, handleSearch]);
+
   // Sync URL with filters
   useEffect(() => {
     const params: any = {};
     if (debouncedSearch) params.search = debouncedSearch;
     if (filters.status && filters.status !== 'all') params.status = filters.status;
     setSearchParams(params);
-    handleSearch(debouncedSearch);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, filters.status, setSearchParams]);
 
   useEffect(() => {
     const statusParam = searchParams.get('status');
     if (statusParam) {
       handleStatusFilter(statusParam);
     }
-  }, []);
+  }, [searchParams, handleStatusFilter]);
 
   // Keyboard shortcut: / to focus search
   useEffect(() => {
@@ -251,5 +254,3 @@ export default function QuotationsList() {
     </div>
   );
 }
-
-import React from 'react';
