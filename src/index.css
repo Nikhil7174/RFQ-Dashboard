@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Enterprise Dashboard Design System */
+
+@layer base {
+  :root {
+    /* Backgrounds */
+    --background: 220 17% 97%;
+    --foreground: 222 47% 11%;
+
+    /* Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Professional Blue */
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 221 83% 45%;
+
+    /* Secondary - Neutral */
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted */
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent */
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --status-pending: 43 96% 56%;
+    --status-pending-foreground: 26 83% 14%;
+    --status-pending-bg: 48 100% 96%;
+    
+    --status-approved: 142 71% 45%;
+    --status-approved-foreground: 0 0% 100%;
+    --status-approved-bg: 138 76% 97%;
+    
+    --status-rejected: 0 84% 60%;
+    --status-rejected-foreground: 0 0% 100%;
+    --status-rejected-bg: 0 86% 97%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    /* Radius */
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;
+    --sidebar-ring: 221 83% 53%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 221 83% 60%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --status-pending: 43 96% 56%;
+    --status-pending-foreground: 26 83% 14%;
+    --status-pending-bg: 43 96% 20%;
+    
+    --status-approved: 142 71% 45%;
+    --status-approved-foreground: 0 0% 100%;
+    --status-approved-bg: 142 71% 20%;
+    
+    --status-rejected: 0 84% 60%;
+    --status-rejected-foreground: 0 0% 100%;
+    --status-rejected-bg: 0 84% 25%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 23%;
+    --input: 217 33% 23%;
+    --ring: 221 83% 53%;
+
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 33% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 15%;
+    --sidebar-ring: 221 83% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  /* Status Pill Variants */
+  .status-pill {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .status-pending {
+    @apply bg-[hsl(var(--status-pending-bg))] text-[hsl(var(--status-pending-foreground))];
+  }
+
+  .status-approved {
+    @apply bg-[hsl(var(--status-approved-bg))] text-[hsl(var(--status-approved-foreground))];
+  }
+
+  .status-rejected {
+    @apply bg-[hsl(var(--status-rejected-bg))] text-[hsl(var(--status-rejected-foreground))];
+  }
+}
