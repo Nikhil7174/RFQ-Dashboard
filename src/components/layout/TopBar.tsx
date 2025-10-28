@@ -86,23 +86,41 @@ export const TopBar = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuItem
                     onClick={() => handleRoleChange('manager')}
-                    className={user.role === 'manager' ? 'bg-accent' : ''}
+                    className={`cursor-pointer focus:!bg-primary/10 focus:!text-foreground ${
+                      user.role === 'manager' 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'hover:bg-primary/10'
+                    }`}
                   >
-                    <UserIcon className="mr-2 h-4 w-4" />
+                    <UserIcon className={`mr-2 h-4 w-4 ${
+                      user.role === 'manager' ? 'text-primary-foreground' : ''
+                    }`} />
                     Manager
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleRoleChange('sales_rep')}
-                    className={user.role === 'sales_rep' ? 'bg-accent' : ''}
+                    className={`cursor-pointer focus:!bg-primary/10 focus:!text-foreground ${
+                      user.role === 'sales_rep' 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'hover:bg-primary/10'
+                    }`}
                   >
-                    <UserIcon className="mr-2 h-4 w-4" />
+                    <UserIcon className={`mr-2 h-4 w-4 ${
+                      user.role === 'sales_rep' ? 'text-primary-foreground' : ''
+                    }`} />
                     Sales Representative
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => handleRoleChange('viewer')}
-                    className={user.role === 'viewer' ? 'bg-accent' : ''}
+                    className={`cursor-pointer focus:!bg-primary/10 focus:!text-foreground ${
+                      user.role === 'viewer' 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'hover:bg-primary/10'
+                    }`}
                   >
-                    <UserIcon className="mr-2 h-4 w-4" />
+                    <UserIcon className={`mr-2 h-4 w-4 ${
+                      user.role === 'viewer' ? 'text-primary-foreground' : ''
+                    }`} />
                     Viewer
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

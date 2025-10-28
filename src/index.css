@@ -38,15 +38,15 @@
     /* Status Colors */
     --status-pending: 43 96% 56%;
     --status-pending-foreground: 26 83% 14%;
-    --status-pending-bg: 48 100% 96%;
+    --status-pending-bg: 43 96% 85%;
     
     --status-approved: 142 71% 45%;
     --status-approved-foreground: 0 0% 100%;
-    --status-approved-bg: 138 76% 97%;
+    --status-approved-bg: 142 71% 85%;
     
     --status-rejected: 0 84% 60%;
     --status-rejected-foreground: 0 0% 100%;
-    --status-rejected-bg: 0 86% 97%;
+    --status-rejected-bg: 0 84% 85%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
@@ -146,7 +146,7 @@
 @layer components {
   /* Status Pill Variants */
   .status-pill {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
   }
 
   .status-pending {
