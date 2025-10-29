@@ -28,14 +28,20 @@ export const useQuotationDetail = (id: string) => {
 
   const handleUpdateDetails = useCallback(
     async (updates: any) => {
+      if (!user) return;
+
       try {
-        await dispatch(updateQuotationDetails({ id, updates })).unwrap();
+        await dispatch(updateQuotationDetails({ 
+          id, 
+          updates,
+          userInfo: { name: user.name, role: user.role }
+        })).unwrap();
         toast.success('Quotation updated successfully');
       } catch (error: any) {
         toast.error(error?.message || 'Failed to update quotation');
       }
     },
-    [dispatch, id]
+    [dispatch, id, user]
   );
 
   const handleAddComment = useCallback(

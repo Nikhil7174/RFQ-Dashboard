@@ -19,6 +19,23 @@ export interface Comment {
   replies?: Reply[];
 }
 
+export interface LineItem {
+  sr: number;
+  item: string;
+  sku: string;
+  qty: number;
+  unit: string;
+  rate: number;
+  amount: number;
+}
+
+export interface StatusHistoryEntry {
+  status: Status;
+  changedBy: string;
+  changedAt: string;
+  reason?: string;
+}
+
 export interface Quotation {
   id: string;
   client: string;
@@ -27,6 +44,12 @@ export interface Quotation {
   last_updated: string;
   description?: string;
   comments: Comment[];
+  lineItems?: LineItem[];
+  subtotal?: number;
+  gst?: number;
+  freight?: number;
+  rejectionReason?: string;
+  statusHistory?: StatusHistoryEntry[];
 }
 
 export interface User {

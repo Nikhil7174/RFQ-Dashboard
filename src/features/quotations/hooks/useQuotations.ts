@@ -48,7 +48,7 @@ export const useQuotations = () => {
   const handleOptimisticStatusUpdate = useCallback(
     async (id: string, newStatus: Status) => {
       const quotation = quotations.find((q) => q.id === id);
-      if (!quotation) return;
+      if (!quotation || !user) return;
 
       const previousStatus = quotation.status;
 
@@ -57,7 +57,11 @@ export const useQuotations = () => {
       toast.loading('Updating status...');
 
       try {
-        await dispatch(updateQuotationStatus({ id, status: newStatus })).unwrap();
+        await dispatch(updateQuotationStatus({ 
+          id, 
+          status: newStatus,
+          userInfo: { name: user.name, role: user.role }
+        })).unwrap();
         toast.dismiss();
         toast.success(`Quotation ${newStatus.toLowerCase()} successfully`);
       } catch (error: any) {
@@ -67,7 +71,7 @@ export const useQuotations = () => {
         toast.error(error || 'Failed to update status');
       }
     },
-    [dispatch, quotations]
+    [dispatch, quotations, user]
   );
 
   return {

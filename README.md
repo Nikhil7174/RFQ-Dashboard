@@ -9,15 +9,22 @@ A professional enterprise B2B quotation management dashboard built with React, T
 - **Role-Based Permissions**: Three roles (Manager, Sales Rep, Viewer) with distinct capabilities
 - **Quotations List**: Search, filter by status, pagination with optimistic updates
 - **Quotation Detail View**: Complete quotation information with inline editing
+- **Line Items Display**: Detailed breakdown with SKU, quantity, unit, rate, and amount for each item
+- **Status History Timeline**: Visual timeline showing all status changes with user info and timestamps
 - **Comments & Replies**: Threaded comments with role-based visibility (up to 2 levels)
 - **Optimistic Updates**: Instant UI updates with automatic rollback on errors
+- **Rejection Workflow**: Optional reason collection when rejecting quotations
+- **Unsaved Changes Protection**: Warns users before navigating away from unsaved edits
 
 ### Product Sense Extras ✨
 1. **URL-Driven State**: All filters are persisted in URL query params for resilient page reloads
 2. **Keyboard Shortcuts**: Press `/` to quickly focus the search input
 3. **First-Run Empty States**: Helpful guidance when no data is available
-4. **Inline Status History**: Real-time updates on quotation status changes
+4. **Inline Status History Timeline**: Complete timeline showing who changed status, when, and why
 5. **Debounced Search**: 300ms debounce for optimal performance
+6. **Unsaved Changes Guard**: Prevents accidental navigation away from unsaved edits with confirmation dialog
+7. **Line Items Breakdown**: Detailed SKU-level breakdown with subtotal, GST, and freight
+8. **Rejection Reason Dialog**: Managers can provide optional context when rejecting quotations
 
 ## 🏗️ Architecture
 
@@ -161,20 +168,27 @@ npm run preview
 
 ### Current Trade-offs
 1. **Local Storage Auth**: Real JWT validation would use httpOnly cookies
-2. **No Pagination**: Infinite scroll or pagination would be added for large datasets
-3. **Basic Form Validation**: More robust validation with Zod schemas
+2. **Pagination Implemented**: Currently using page-based pagination; could add infinite scroll as alternative
+3. **Basic Form Validation**: More robust validation with Zod schemas could be added
 4. **No Real-Time Updates**: WebSocket integration for collaborative features
-5. **Limited Testing**: Unit tests for critical paths (permissions, reducers)
+5. **Limited Testing**: Unit tests for critical paths (permissions, reducers) recommended
 
 ### Future Enhancements
-- Advanced filtering (date range, amount range)
-- Bulk actions (approve/reject multiple)
-- Export quotations to PDF
-- Email notifications
-- Audit log for all changes
-- Dark mode toggle
-- Conflict resolution for concurrent edits
-- Offline-first with service worker
+- **Phase 2 Features** (planned):
+  - Additional keyboard shortcuts (a to approve, r to reject, e to edit, Escape to cancel)
+  - Draft persistence for comments (auto-save and restore)
+  - Better inline validation with helpful error messages
+- **Phase 3 Features** (planned):
+  - Printable/PDF-friendly view
+  - Scroll position preservation when navigating
+  - Demo video/GIFs
+- **Long-term**:
+  - Advanced filtering (date range, amount range)
+  - Bulk actions (approve/reject multiple)
+  - Email notifications
+  - Dark mode toggle
+  - Conflict resolution for concurrent edits
+  - Offline-first with service worker
 
 ## 🎯 Performance Optimizations
 

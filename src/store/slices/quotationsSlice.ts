@@ -74,9 +74,9 @@ export const fetchQuotationComments = createAsyncThunk(
 
 export const updateQuotationStatus = createAsyncThunk(
   'quotations/updateStatus',
-  async ({ id, status }: { id: string; status: Status }, { rejectWithValue }) => {
+  async ({ id, status, rejectionReason, userInfo }: { id: string; status: Status; rejectionReason?: string; userInfo?: { name: string; role: string } }, { rejectWithValue }) => {
     try {
-      const response = await mockApi.updateQuotation(id, { status });
+      const response = await mockApi.updateQuotation(id, { status, rejectionReason }, userInfo);
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
@@ -86,9 +86,9 @@ export const updateQuotationStatus = createAsyncThunk(
 
 export const updateQuotationDetails = createAsyncThunk(
   'quotations/updateDetails',
-  async ({ id, updates }: { id: string; updates: Partial<Quotation> }, { rejectWithValue }) => {
+  async ({ id, updates, userInfo }: { id: string; updates: Partial<Quotation>; userInfo?: { name: string; role: string } }, { rejectWithValue }) => {
     try {
-      const response = await mockApi.updateQuotation(id, updates);
+      const response = await mockApi.updateQuotation(id, updates, userInfo);
       return response;
     } catch (error: any) {
       return rejectWithValue(error.message);
