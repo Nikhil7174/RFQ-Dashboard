@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   AUTH_TOKEN: 'pactle_auth_token',
   USER: 'pactle_user',
   USERS_DB: 'pactle_users_db',
+  QUOTATION_COMMENTS: 'pactle_quotation_comments',
 } as const;
 
 export const storage = {
@@ -41,6 +42,27 @@ export const storage = {
 
   setUsersDB: (users: any[]) => {
     localStorage.setItem(STORAGE_KEYS.USERS_DB, JSON.stringify(users));
+  },
+
+  // Quotation comments cache: { [quotationId]: Comment[] }
+  getQuotationCommentsMap: (): Record<string, any[]> => {
+    const raw = localStorage.getItem(STORAGE_KEYS.QUOTATION_COMMENTS);
+    return raw ? JSON.parse(raw) : {};
+  },
+
+  setQuotationCommentsMap: (map: Record<string, any[]>) => {
+    localStorage.setItem(STORAGE_KEYS.QUOTATION_COMMENTS, JSON.stringify(map));
+  },
+
+  getCommentsForQuotation: (quotationId: string): any[] | null => {
+    const map = storage.getQuotationCommentsMap();
+    return map[quotationId] ?? null;
+  },
+
+  setCommentsForQuotation: (quotationId: string, comments: any[]) => {
+    const map = storage.getQuotationCommentsMap();
+    map[quotationId] = comments;
+    storage.setQuotationCommentsMap(map);
   },
 
   clear: () => {

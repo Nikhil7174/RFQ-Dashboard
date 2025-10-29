@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { canAddComment, canAddReply, canViewReply } from '@/lib/permissions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Send } from 'lucide-react';
 import { Comment, Quotation, User } from '@/lib/types';
@@ -9,11 +10,12 @@ import { Comment, Quotation, User } from '@/lib/types';
 interface CommentsSectionProps {
   quotation: Quotation;
   user: User;
+  commentsLoading?: boolean;
   onAddComment: (text: string) => Promise<void>;
   onAddReply: (commentId: number, text: string) => Promise<void>;
 }
 
-export const CommentsSection = ({ quotation, user, onAddComment, onAddReply }: CommentsSectionProps) => {
+export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment, onAddReply }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -96,7 +98,7 @@ export const CommentsSection = ({ quotation, user, onAddComment, onAddReply }: C
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                  className="h-auto p-0 text-xs text-primary hover:bg-white hover:text-primary"
                   onClick={() => toggleReplies(comment.id)}
                 >
                   {expandedComments.has(comment.id) ? 'Hide' : 'View'} replies ({visibleReplies.length})
@@ -106,7 +108,7 @@ export const CommentsSection = ({ quotation, user, onAddComment, onAddReply }: C
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-auto p-0 text-xs text-primary hover:bg-transparent"
+                  className="h-auto p-0 text-xs text-primary hover:bg-white hover:text-primary"
                   onClick={() => setReplyTo(comment.id)}
                 >
                   Reply
@@ -187,7 +189,11 @@ export const CommentsSection = ({ quotation, user, onAddComment, onAddReply }: C
 
       {/* Comments List */}
       <div className="space-y-6">
-        {quotation.comments.length === 0 ? (
+        {commentsLoading ? (
+          <div className="py-8 flex items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : quotation.comments.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
             <MessageSquare className="mx-auto mb-2 h-8 w-8" />
             <p>No comments yet</p>

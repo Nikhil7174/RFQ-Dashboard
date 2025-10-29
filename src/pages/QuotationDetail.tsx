@@ -25,7 +25,7 @@ export default function QuotationDetail() {
     return null;
   }
 
-  const { quotation, loading, error, user, handleUpdateDetails, handleAddComment, handleAddReply } = useQuotationDetail(id);
+  const { quotation, loading, error, commentsLoading, user, handleUpdateDetails, handleAddComment, handleAddReply } = useQuotationDetail(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
@@ -234,6 +234,7 @@ export default function QuotationDetail() {
         <CommentsSection
           quotation={quotation}
           user={user!}
+          commentsLoading={commentsLoading}
           onAddComment={handleAddComment}
           onAddReply={handleAddReply}
         />

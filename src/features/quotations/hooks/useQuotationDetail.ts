@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   fetchQuotation,
+  fetchQuotationComments,
   updateQuotationDetails,
   addComment,
   addReply,
@@ -11,12 +12,19 @@ import { toast } from 'sonner';
 
 export const useQuotationDetail = (id: string) => {
   const dispatch = useAppDispatch();
-  const { currentQuotation, loading, error } = useAppSelector((state) => state.quotations);
+  const { currentQuotation, loading, error, commentsLoading } = useAppSelector((state) => state.quotations);
   const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchQuotation(id));
   }, [dispatch, id]);
+
+  // Lazy-load comments after quotation data
+  useEffect(() => {
+    if (currentQuotation?.id === id) {
+      dispatch(fetchQuotationComments(id));
+    }
+  }, [dispatch, id, currentQuotation?.id]);
 
   const handleUpdateDetails = useCallback(
     async (updates: any) => {
@@ -75,6 +83,7 @@ export const useQuotationDetail = (id: string) => {
     quotation: currentQuotation,
     loading,
     error,
+    commentsLoading,
     user,
     handleUpdateDetails,
     handleAddComment,

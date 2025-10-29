@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Quotation, Comment, Reply, Status } from '@/lib/types';
+import { storage } from '@/lib/storage';
 import { mockApi } from '@/lib/mockApi';
 
 interface QuotationsState {
@@ -17,6 +18,7 @@ interface QuotationsState {
     totalItems: number;
     totalPages: number;
   };
+  commentsLoading: boolean;
 }
 
 const initialState: QuotationsState = {
@@ -24,6 +26,7 @@ const initialState: QuotationsState = {
   currentQuotation: null,
   loading: false,
   error: null,
+  commentsLoading: false,
   filters: {
     search: '',
     status: 'all',
@@ -50,6 +53,22 @@ export const fetchQuotation = createAsyncThunk(
   async (id: string) => {
     const response = await mockApi.getQuotation(id);
     return response;
+  }
+);
+
+export const fetchQuotationComments = createAsyncThunk(
+  'quotations/fetchQuotationComments',
+  async (id: string) => {
+    // Prefer local cache
+    const cached = storage.getCommentsForQuotation(id);
+    if (cached) {
+      return { quotationId: id, comments: cached as Comment[] };
+    }
+    // Fallback to API
+    const response = await mockApi.getQuotation(id);
+    const comments = (response.comments ?? []) as Comment[];
+    storage.setCommentsForQuotation(id, comments);
+    return { quotationId: id, comments };
   }
 );
 
@@ -179,7 +198,9 @@ const quotationsSlice = createSlice({
       })
       .addCase(fetchQuotation.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentQuotation = action.payload;
+        // Lazy-load comments: strip them initially; load separately
+        const { comments, ...rest } = action.payload as any;
+        state.currentQuotation = { ...(rest as Quotation), comments: [] } as Quotation;
       })
       .addCase(fetchQuotation.rejected, (state, action) => {
         state.loading = false;
@@ -212,6 +233,11 @@ const quotationsSlice = createSlice({
       .addCase(addComment.fulfilled, (state, action) => {
         if (state.currentQuotation?.id === action.payload.quotationId) {
           state.currentQuotation.comments.push(action.payload.comment);
+          // Persist comments to local storage
+          storage.setCommentsForQuotation(
+            action.payload.quotationId,
+            state.currentQuotation.comments,
+          );
         }
       })
       // Add reply
@@ -223,8 +249,26 @@ const quotationsSlice = createSlice({
           if (comment) {
             if (!comment.replies) comment.replies = [];
             comment.replies.push(action.payload.reply);
+            // Persist comments to local storage
+            storage.setCommentsForQuotation(
+              action.payload.quotationId,
+              state.currentQuotation.comments,
+            );
           }
         }
+      })
+      // Fetch comments lazily
+      .addCase(fetchQuotationComments.pending, (state) => {
+        state.commentsLoading = true;
+      })
+      .addCase(fetchQuotationComments.fulfilled, (state, action) => {
+        state.commentsLoading = false;
+        if (state.currentQuotation && state.currentQuotation.id === action.payload.quotationId) {
+          state.currentQuotation.comments = action.payload.comments;
+        }
+      })
+      .addCase(fetchQuotationComments.rejected, (state) => {
+        state.commentsLoading = false;
       });
   },
 });
@@ -232,3 +276,4 @@ const quotationsSlice = createSlice({
 export const { setFilters, setPage, setPagination, clearError, optimisticStatusUpdate, rollbackStatusUpdate } =
   quotationsSlice.actions;
 export default quotationsSlice.reducer;
+
