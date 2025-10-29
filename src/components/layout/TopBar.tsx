@@ -1,3 +1,4 @@
+import { useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { logout, updateUserRole } from '@/store/slices/authSlice';
@@ -14,45 +15,50 @@ import {
 import { LogOut, User as UserIcon } from 'lucide-react';
 import { Role } from '@/lib/types';
 
-export const TopBar = () => {
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const getRoleDisplay = (role: Role) => {
+  const roleMap = {
+    manager: 'Manager',
+    sales_rep: 'Sales Rep',
+    viewer: 'Viewer',
+  };
+  return roleMap[role];
+};
+
+const TopBarComponent = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     navigate('/login');
-  };
+  }, [dispatch, navigate]);
 
-  const handleRoleChange = (role: Role) => {
+  const handleRoleChange = useCallback((role: Role) => {
     if (user) {
       dispatch(updateUserRole({ ...user, role }));
     }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getRoleDisplay = (role: Role) => {
-    const roleMap = {
-      manager: 'Manager',
-      sales_rep: 'Sales Rep',
-      viewer: 'Viewer',
-    };
-    return roleMap[role];
-  };
+  }, [user, dispatch]);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-card shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-primary">Pactle</h1>
+          <h1 
+            className="text-xl font-bold text-primary cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate('/')}
+          >
+            Pactle
+          </h1>
         </div>
 
         <div className="flex items-center gap-4">
@@ -136,3 +142,5 @@ export const TopBar = () => {
     </header>
   );
 };
+
+export const TopBar = memo(TopBarComponent);

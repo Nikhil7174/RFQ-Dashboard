@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Status } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -6,7 +7,7 @@ interface StatusPillProps {
   className?: string;
 }
 
-export const StatusPill = ({ status, className }: StatusPillProps) => {
+const StatusPillComponent = ({ status, className }: StatusPillProps) => {
   return (
     <span
       className={cn(
@@ -23,3 +24,5 @@ export const StatusPill = ({ status, className }: StatusPillProps) => {
     </span>
   );
 };
+
+export const StatusPill = memo(StatusPillComponent);

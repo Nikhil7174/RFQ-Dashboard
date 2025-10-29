@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { canAddComment, canAddReply, canViewReply } from '@/lib/permissions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +16,33 @@ interface CommentsSectionProps {
   onAddReply: (commentId: number, text: string) => Promise<void>;
 }
 
-export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment, onAddReply }: CommentsSectionProps) => {
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInMinutes = diffInMs / (1000 * 60);
+
+  if (diffInMinutes < 1) {
+    return 'Just now';
+  } else if (diffInMinutes < 60) {
+    return `${Math.floor(diffInMinutes)}m ago`;
+  } else if (diffInMinutes < 1440) {
+    return `${Math.floor(diffInMinutes / 60)}h ago`;
+  } else {
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  }
+};
+
+const CommentsSectionComponent = ({ quotation, user, commentsLoading, onAddComment, onAddReply }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -65,7 +91,7 @@ export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment
     };
   }, [newComment, replyTexts, quotation.id]);
 
-  const handleSubmitComment = async () => {
+  const handleSubmitComment = useCallback(async () => {
     if (!newComment.trim()) return;
     await onAddComment(newComment);
     setNewComment('');
@@ -77,9 +103,9 @@ export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment
         replies: draft.replies,
       });
     }
-  };
+  }, [newComment, onAddComment, quotation.id]);
 
-  const handleSubmitReply = async (commentId: number) => {
+  const handleSubmitReply = useCallback(async (commentId: number) => {
     const text = replyTexts[commentId] || replyText;
     if (!text.trim()) return;
     await onAddReply(commentId, text);
@@ -99,52 +125,28 @@ export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment
         replies: newReplyTexts,
       });
     }
-  };
+  }, [replyTexts, replyText, onAddReply, quotation.id]);
 
-  const handleReplyTextChange = (commentId: number, text: string) => {
+  const handleReplyTextChange = useCallback((commentId: number, text: string) => {
     setReplyTexts(prev => ({ ...prev, [commentId]: text }));
     if (commentId === replyTo) {
       setReplyText(text);
     }
-  };
+  }, [replyTo]);
 
-  const toggleReplies = (commentId: number) => {
-    const newExpanded = new Set(expandedComments);
-    if (newExpanded.has(commentId)) {
-      newExpanded.delete(commentId);
-    } else {
-      newExpanded.add(commentId);
-    }
-    setExpandedComments(newExpanded);
-  };
+  const toggleReplies = useCallback((commentId: number) => {
+    setExpandedComments(prev => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(commentId)) {
+        newExpanded.delete(commentId);
+      } else {
+        newExpanded.add(commentId);
+      }
+      return newExpanded;
+    });
+  }, []);
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = diffInMs / (1000 * 60);
-
-    if (diffInMinutes < 1) {
-      return 'Just now';
-    } else if (diffInMinutes < 60) {
-      return `${Math.floor(diffInMinutes)}m ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)}h ago`;
-    } else {
-      return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  const renderComment = (comment: Comment) => {
+  const renderComment = useCallback((comment: Comment) => {
     const visibleReplies = comment.replies?.filter((reply) =>
       canViewReply(user.role, reply.role)
     ) || [];
@@ -246,7 +248,7 @@ export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment
         )}
       </div>
     );
-  };
+  }, [user, expandedComments, replyTo, replyTexts, replyText, toggleReplies, handleReplyTextChange, handleSubmitReply]);
 
   return (
     <div className="space-y-6">
@@ -294,3 +296,5 @@ export const CommentsSection = ({ quotation, user, commentsLoading, onAddComment
     </div>
   );
 };
+
+export const CommentsSection = memo(CommentsSectionComponent);

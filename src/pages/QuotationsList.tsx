@@ -18,7 +18,28 @@ import { getAvailableActions } from '@/lib/permissions';
 import { Search, FileText, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
-// Debounce utility
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(amount);
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInHours = diffInMs / (1000 * 60 * 60);
+
+  if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}h ago`;
+  } else if (diffInHours < 48) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+  }
+};
+
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = React.useState(value);
 
@@ -102,37 +123,19 @@ export default function QuotationsList() {
     }
   }, [loading]);
 
-  // Save scroll position before navigating
   const saveScrollPosition = useCallback(() => {
     sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY.toString());
   }, []);
 
-  const handleQuotationClick = (id: string) => {
+  const handleQuotationClick = useCallback((id: string) => {
     saveScrollPosition();
     navigate(`/quotations/${id}`);
-  };
+  }, [saveScrollPosition, navigate]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInHours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-    }
-  };
+  const paginationPages = useMemo(() => 
+    Array.from({ length: pagination.totalPages }, (_, i) => i + 1),
+    [pagination.totalPages]
+  );
 
   if (error) {
     return (
@@ -322,7 +325,7 @@ export default function QuotationsList() {
             </Button>
             
             <div className="flex items-center space-x-1">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+              {paginationPages.map((page) => (
                 <Button
                   key={page}
                   variant={page === pagination.currentPage ? "default" : "outline"}

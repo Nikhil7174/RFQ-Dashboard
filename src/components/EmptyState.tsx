@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { FileText } from 'lucide-react';
 
 interface EmptyStateProps {
@@ -7,7 +8,7 @@ interface EmptyStateProps {
   action?: React.ReactNode;
 }
 
-export const EmptyState = ({
+const EmptyStateComponent = ({
   icon = <FileText className="h-12 w-12 text-muted-foreground" />,
   title,
   description,
@@ -22,3 +23,5 @@ export const EmptyState = ({
     </div>
   );
 };
+
+export const EmptyState = memo(EmptyStateComponent);

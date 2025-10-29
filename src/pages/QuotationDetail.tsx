@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuotationDetail } from '@/features/quotations/hooks/useQuotationDetail';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(amount);
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleString('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+};
+
+const validateField = (field: string, value: any): string => {
+  switch (field) {
+    case 'client':
+      if (!value || value.trim().length === 0) {
+        return 'Client name is required';
+      }
+      if (value.trim().length < 2) {
+        return 'Client name must be at least 2 characters';
+      }
+      return '';
+    case 'amount':
+      if (!value || value <= 0) {
+        return 'Amount must be greater than ₹0';
+      }
+      if (value > 10000000) {
+        return 'Amount seems unusually high. Please verify.';
+      }
+      return '';
+    default:
+      return '';
+  }
+};
 
 export default function QuotationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +145,105 @@ export default function QuotationDetail() {
     };
   }, [isDirty, location.pathname]);
 
-  // Keyboard shortcuts
+  const handleEdit = useCallback(() => {
+    if (quotation) {
+      setEditedData({
+        client: quotation.client,
+        amount: quotation.amount,
+        description: quotation.description || '',
+      });
+      setIsEditing(true);
+      setIsDirty(false);
+    }
+  }, [quotation]);
+
+  const hasValidationErrors = useCallback((): boolean => {
+    const clientError = validateField('client', editedData.client);
+    const amountError = validateField('amount', editedData.amount);
+    
+    setValidationErrors({
+      client: clientError,
+      amount: amountError,
+    });
+
+    return !!(clientError || amountError);
+  }, [editedData.client, editedData.amount]);
+
+  const handleSave = useCallback(async () => {
+    if (hasValidationErrors()) {
+      toast.error('Please fix the validation errors before saving');
+      return;
+    }
+    await handleUpdateDetails(editedData);
+    setIsEditing(false);
+    setIsDirty(false);
+    setValidationErrors({ client: '', amount: '' });
+  }, [hasValidationErrors, handleUpdateDetails, editedData]);
+
+  const handleCancel = useCallback(() => {
+    if (isDirty) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to discard them?');
+      if (!confirmed) return;
+    }
+    setIsEditing(false);
+    setIsDirty(false);
+    setValidationErrors({ client: '', amount: '' });
+  }, [isDirty]);
+
+  const handleFieldChange = useCallback((field: keyof typeof editedData, value: any) => {
+    setEditedData(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+    
+    // Real-time validation with debounce
+    const error = validateField(field, value);
+    setValidationErrors(prev => ({ ...prev, [field]: error }));
+  }, []);
+
+  const handleApprove = useCallback(async () => {
+    if (!quotation || !user) return;
+
+    const previousStatus = quotation.status;
+    dispatch(optimisticStatusUpdate({ id, status: 'Approved' }));
+    toast.loading('Approving quotation...');
+
+    try {
+      await dispatch(updateQuotationStatus({ 
+        id, 
+        status: 'Approved',
+        userInfo: { name: user.name, role: user.role }
+      })).unwrap();
+      toast.dismiss();
+      toast.success('Quotation approved successfully');
+    } catch (error: any) {
+      dispatch(rollbackStatusUpdate({ id, previousStatus }));
+      toast.dismiss();
+      toast.error(error?.message || 'Failed to approve quotation');
+    }
+  }, [quotation, user, dispatch, id]);
+
+  const handleReject = useCallback(async (reason?: string) => {
+    if (!quotation || !user) return;
+
+    const previousStatus = quotation.status;
+    dispatch(optimisticStatusUpdate({ id, status: 'Rejected' }));
+    toast.loading('Rejecting quotation...');
+
+    try {
+      await dispatch(updateQuotationStatus({ 
+        id, 
+        status: 'Rejected',
+        rejectionReason: reason,
+        userInfo: { name: user.name, role: user.role }
+      })).unwrap();
+      toast.dismiss();
+      toast.success('Quotation rejected');
+    } catch (error: any) {
+      dispatch(rollbackStatusUpdate({ id, previousStatus }));
+      toast.dismiss();
+      toast.error(error?.message || 'Failed to reject quotation');
+    }
+  }, [quotation, user, dispatch, id]);
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs
@@ -157,143 +292,7 @@ export default function QuotationDetail() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [quotation, user, isEditing]);
-
-  const handleEdit = () => {
-    if (quotation) {
-      setEditedData({
-        client: quotation.client,
-        amount: quotation.amount,
-        description: quotation.description || '',
-      });
-      setIsEditing(true);
-      setIsDirty(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (hasValidationErrors()) {
-      toast.error('Please fix the validation errors before saving');
-      return;
-    }
-    await handleUpdateDetails(editedData);
-    setIsEditing(false);
-    setIsDirty(false);
-    setValidationErrors({ client: '', amount: '' });
-  };
-
-  const handleCancel = () => {
-    if (isDirty) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to discard them?');
-      if (!confirmed) return;
-    }
-    setIsEditing(false);
-    setIsDirty(false);
-    setValidationErrors({ client: '', amount: '' });
-  };
-
-  const validateField = (field: string, value: any): string => {
-    switch (field) {
-      case 'client':
-        if (!value || value.trim().length === 0) {
-          return 'Client name is required';
-        }
-        if (value.trim().length < 2) {
-          return 'Client name must be at least 2 characters';
-        }
-        return '';
-      case 'amount':
-        if (!value || value <= 0) {
-          return 'Amount must be greater than ₹0';
-        }
-        if (value > 10000000) {
-          return 'Amount seems unusually high. Please verify.';
-        }
-        return '';
-      default:
-        return '';
-    }
-  };
-
-  const handleFieldChange = (field: keyof typeof editedData, value: any) => {
-    setEditedData(prev => ({ ...prev, [field]: value }));
-    setIsDirty(true);
-    
-    // Real-time validation with debounce
-    const error = validateField(field, value);
-    setValidationErrors(prev => ({ ...prev, [field]: error }));
-  };
-
-  const hasValidationErrors = (): boolean => {
-    const clientError = validateField('client', editedData.client);
-    const amountError = validateField('amount', editedData.amount);
-    
-    setValidationErrors({
-      client: clientError,
-      amount: amountError,
-    });
-
-    return !!(clientError || amountError);
-  };
-
-  const handleApprove = async () => {
-    if (!quotation || !user) return;
-
-    const previousStatus = quotation.status;
-    dispatch(optimisticStatusUpdate({ id, status: 'Approved' }));
-    toast.loading('Approving quotation...');
-
-    try {
-      await dispatch(updateQuotationStatus({ 
-        id, 
-        status: 'Approved',
-        userInfo: { name: user.name, role: user.role }
-      })).unwrap();
-      toast.dismiss();
-      toast.success('Quotation approved successfully');
-    } catch (error: any) {
-      dispatch(rollbackStatusUpdate({ id, previousStatus }));
-      toast.dismiss();
-      toast.error(error?.message || 'Failed to approve quotation');
-    }
-  };
-
-  const handleReject = async (reason?: string) => {
-    if (!quotation || !user) return;
-
-    const previousStatus = quotation.status;
-    dispatch(optimisticStatusUpdate({ id, status: 'Rejected' }));
-    toast.loading('Rejecting quotation...');
-
-    try {
-      await dispatch(updateQuotationStatus({ 
-        id, 
-        status: 'Rejected',
-        rejectionReason: reason,
-        userInfo: { name: user.name, role: user.role }
-      })).unwrap();
-      toast.dismiss();
-      toast.success('Quotation rejected');
-    } catch (error: any) {
-      dispatch(rollbackStatusUpdate({ id, previousStatus }));
-      toast.dismiss();
-      toast.error(error?.message || 'Failed to reject quotation');
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    });
-  };
+  }, [quotation, user, isEditing, handleEdit, handleCancel, handleApprove]);
 
   if (loading) {
     return <LoadingSpinner />;

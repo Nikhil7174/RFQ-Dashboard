@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,15 +20,16 @@ interface RejectDialogProps {
   trigger?: React.ReactNode;
 }
 
-export const RejectDialog = ({ onReject, trigger }: RejectDialogProps) => {
+const RejectDialogComponent = ({ onReject, trigger }: RejectDialogProps) => {
   const [reason, setReason] = useState('');
   const [open, setOpen] = useState(false);
 
-  const handleReject = () => {
+  
+  const handleReject = useCallback(() => {
     onReject(reason.trim() || undefined);
     setReason('');
     setOpen(false);
-  };
+  }, [onReject, reason]);
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -72,4 +73,6 @@ export const RejectDialog = ({ onReject, trigger }: RejectDialogProps) => {
     </AlertDialog>
   );
 };
+
+export const RejectDialog = memo(RejectDialogComponent);
 
