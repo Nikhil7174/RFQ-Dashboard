@@ -1,20 +1,19 @@
 import { useState } from 'react';
-import { useQuotationDetail } from '../hooks/useQuotationDetail';
-import { useAppSelector } from '@/store/hooks';
 import { canAddComment, canAddReply, canViewReply } from '@/lib/permissions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { MessageSquare, Send } from 'lucide-react';
-import { Comment } from '@/lib/types';
+import { Comment, Quotation, User } from '@/lib/types';
 
 interface CommentsSectionProps {
-  quotationId: string;
+  quotation: Quotation;
+  user: User;
+  onAddComment: (text: string) => Promise<void>;
+  onAddReply: (commentId: number, text: string) => Promise<void>;
 }
 
-export const CommentsSection = ({ quotationId }: CommentsSectionProps) => {
-  const { quotation, handleAddComment, handleAddReply } = useQuotationDetail(quotationId);
-  const { user } = useAppSelector((state) => state.auth);
+export const CommentsSection = ({ quotation, user, onAddComment, onAddReply }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -24,13 +23,13 @@ export const CommentsSection = ({ quotationId }: CommentsSectionProps) => {
 
   const handleSubmitComment = async () => {
     if (!newComment.trim()) return;
-    await handleAddComment(newComment);
+    await onAddComment(newComment);
     setNewComment('');
   };
 
   const handleSubmitReply = async (commentId: number) => {
     if (!replyText.trim()) return;
-    await handleAddReply(commentId, replyText);
+    await onAddReply(commentId, replyText);
     setReplyText('');
     setReplyTo(null);
   };

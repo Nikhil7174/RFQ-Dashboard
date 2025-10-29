@@ -8,6 +8,7 @@ import { Quotation, Comment, Reply } from './types';
 const DELAY = 1000; // 1 second delay
 
 const delay = (ms: number = DELAY) => new Promise(resolve => setTimeout(resolve, ms));
+const deepClone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj));
 
 // Mock data
 let quotationsData: Quotation[] = [
@@ -206,7 +207,7 @@ export const mockApi = {
     const totalPages = Math.ceil(totalItems / limit);
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedData = filtered.slice(startIndex, endIndex);
+    const paginatedData = filtered.slice(startIndex, endIndex).map((q) => deepClone(q));
 
     return {
       data: paginatedData,
@@ -222,7 +223,7 @@ export const mockApi = {
     await delay();
     const quotation = quotationsData.find(q => q.id === id);
     if (!quotation) throw new Error('Quotation not found');
-    return quotation;
+    return deepClone(quotation);
   },
 
   // Update quotation (status, client, amount)
@@ -243,15 +244,15 @@ export const mockApi = {
       last_updated: new Date().toISOString(),
     };
 
-    return quotationsData[index];
+    return deepClone(quotationsData[index]);
   },
 
   // Add comment to quotation
   addComment: async (quotationId: string, comment: Omit<Comment, 'id' | 'timestamp'>) => {
     await delay();
 
-    const quotation = quotationsData.find(q => q.id === quotationId);
-    if (!quotation) throw new Error('Quotation not found');
+    const index = quotationsData.findIndex(q => q.id === quotationId);
+    if (index === -1) throw new Error('Quotation not found');
 
     const newComment: Comment = {
       ...comment,
@@ -260,21 +261,22 @@ export const mockApi = {
       replies: [],
     };
 
-    quotation.comments.push(newComment);
-    quotation.last_updated = new Date().toISOString();
+    const current = quotationsData[index];
+    quotationsData[index] = {
+      ...current,
+      comments: [...current.comments, newComment],
+      last_updated: new Date().toISOString(),
+    };
 
-    return newComment;
+    return deepClone(newComment);
   },
 
   // Add reply to comment
   addReply: async (quotationId: string, commentId: number, reply: Omit<Reply, 'id' | 'timestamp'>) => {
     await delay();
 
-    const quotation = quotationsData.find(q => q.id === quotationId);
-    if (!quotation) throw new Error('Quotation not found');
-
-    const comment = quotation.comments.find(c => c.id === commentId);
-    if (!comment) throw new Error('Comment not found');
+    const qIndex = quotationsData.findIndex(q => q.id === quotationId);
+    if (qIndex === -1) throw new Error('Quotation not found');
 
     const newReply: Reply = {
       ...reply,
@@ -282,10 +284,22 @@ export const mockApi = {
       timestamp: new Date().toISOString(),
     };
 
-    if (!comment.replies) comment.replies = [];
-    comment.replies.push(newReply);
-    quotation.last_updated = new Date().toISOString();
+    const current = quotationsData[qIndex];
+    const updatedComments = current.comments.map((c) => {
+      if (c.id !== commentId) return c;
+      const existingReplies = c.replies ? [...c.replies] : [];
+      return {
+        ...c,
+        replies: [...existingReplies, newReply],
+      } as Comment;
+    });
 
-    return newReply;
+    quotationsData[qIndex] = {
+      ...current,
+      comments: updatedComments,
+      last_updated: new Date().toISOString(),
+    };
+
+    return deepClone(newReply);
   },
 };

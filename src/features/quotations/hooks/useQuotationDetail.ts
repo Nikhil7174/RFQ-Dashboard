@@ -24,7 +24,7 @@ export const useQuotationDetail = (id: string) => {
         await dispatch(updateQuotationDetails({ id, updates })).unwrap();
         toast.success('Quotation updated successfully');
       } catch (error: any) {
-        toast.error(error || 'Failed to update quotation');
+        toast.error(error?.message || 'Failed to update quotation');
       }
     },
     [dispatch, id]
@@ -45,7 +45,7 @@ export const useQuotationDetail = (id: string) => {
         await dispatch(addComment({ quotationId: id, comment })).unwrap();
         toast.success('Comment added successfully');
       } catch (error: any) {
-        toast.error(error || 'Failed to add comment');
+        toast.error(error?.message || 'Failed to add comment');
       }
     },
     [dispatch, id, user]
@@ -65,7 +65,7 @@ export const useQuotationDetail = (id: string) => {
         await dispatch(addReply({ quotationId: id, commentId, reply })).unwrap();
         toast.success('Reply added successfully');
       } catch (error: any) {
-        toast.error(error || 'Failed to add reply');
+        toast.error(error?.message || 'Failed to add reply');
       }
     },
     [dispatch, id, user]

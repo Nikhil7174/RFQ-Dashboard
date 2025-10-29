@@ -25,12 +25,13 @@ export default function QuotationDetail() {
     return null;
   }
 
-  const { quotation, loading, error, user, handleUpdateDetails } = useQuotationDetail(id);
+  const { quotation, loading, error, user, handleUpdateDetails, handleAddComment, handleAddReply } = useQuotationDetail(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     client: '',
     amount: 0,
+    description: '',
   });
 
   const handleEdit = () => {
@@ -38,6 +39,7 @@ export default function QuotationDetail() {
       setEditedData({
         client: quotation.client,
         amount: quotation.amount,
+        description: quotation.description || '',
       });
       setIsEditing(true);
     }
@@ -66,7 +68,7 @@ export default function QuotationDetail() {
     } catch (error: any) {
       dispatch(rollbackStatusUpdate({ id, previousStatus }));
       toast.dismiss();
-      toast.error(error || 'Failed to update status');
+      toast.error(error?.message || 'Failed to update status');
     }
   };
 
@@ -124,7 +126,7 @@ export default function QuotationDetail() {
           {/* Header Section */}
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              {isEditing ? (
+              {isEditing && actions?.canEdit ? (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Client Name</label>
                   <Input
@@ -155,7 +157,7 @@ export default function QuotationDetail() {
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium text-muted-foreground">Amount</label>
-              {isEditing ? (
+              {isEditing && actions?.canEdit ? (
                 <Input
                   type="number"
                   value={editedData.amount}
@@ -173,15 +175,26 @@ export default function QuotationDetail() {
           </div>
 
           {/* Description */}
-          {quotation.description && (
+          {isEditing && actions?.canEdit ? (
             <div>
               <label className="text-sm font-medium text-muted-foreground">Description</label>
-              <p className="mt-1 text-sm">{quotation.description}</p>
+              <Textarea
+                value={editedData.description}
+                onChange={(e) => setEditedData({ ...editedData, description: e.target.value })}
+                className="mt-1 min-h-[80px]"
+              />
             </div>
+          ) : (
+            quotation.description && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Description</label>
+                <p className="mt-1 text-sm">{quotation.description}</p>
+              </div>
+            )
           )}
 
           {/* Edit Actions */}
-          {isEditing && (
+          {isEditing && actions?.canEdit && (
             <div className="flex gap-2 border-t pt-4">
               <Button onClick={handleSave}>
                 <Save className="mr-1 h-4 w-4" />
@@ -218,7 +231,12 @@ export default function QuotationDetail() {
           <MessageSquare className="h-5 w-5" />
           <h3 className="text-lg font-semibold">Activity & Comments</h3>
         </div>
-        <CommentsSection quotationId={id} />
+        <CommentsSection
+          quotation={quotation}
+          user={user!}
+          onAddComment={handleAddComment}
+          onAddReply={handleAddReply}
+        />
       </Card>
     </div>
   );
