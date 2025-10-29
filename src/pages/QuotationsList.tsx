@@ -224,52 +224,77 @@ export default function QuotationsList() {
                 className="cursor-pointer transition-all hover:shadow-md"
                 onClick={() => handleQuotationClick(quotation.id)}
               >
-                <div className="p-4 md:p-6">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold text-lg">{quotation.client}</h3>
-                          <p className="text-sm text-muted-foreground">{quotation.id}</p>
+                  <div className="p-4 md:p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="font-semibold text-lg">{quotation.client}</h3>
+                            <p className="text-sm text-muted-foreground">{quotation.id}</p>
+                          </div>
+                          {/* Show status pill only for non-managers */}
+                          {user && user.role !== 'manager' && (
+                            <StatusPill status={quotation.status} />
+                          )}
                         </div>
-                        <StatusPill status={quotation.status} />
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="font-medium text-foreground">
+                            {formatCurrency(quotation.amount)}
+                          </span>
+                          <span>•</span>
+                          <span>Updated {formatDate(quotation.last_updated)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {formatCurrency(quotation.amount)}
-                        </span>
-                        <span>•</span>
-                        <span>Updated {formatDate(quotation.last_updated)}</span>
-                      </div>
-                    </div>
 
-                    {/* Actions */}
-                    {actions && (actions.canApprove || actions.canReject) && (
-                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                        {actions.canApprove && (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleOptimisticStatusUpdate(quotation.id, 'Approved')}
-                          >
-                            <CheckCircle className="mr-1 h-4 w-4" />
-                            Approve
-                          </Button>
-                        )}
-                        {actions.canReject && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleOptimisticStatusUpdate(quotation.id, 'Rejected')}
-                          >
-                            <XCircle className="mr-1 h-4 w-4" />
-                            Reject
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                      {/* Actions - For managers, show buttons that reflect status */}
+                      {user && user.role === 'manager' && (
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          {quotation.status === 'Pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleOptimisticStatusUpdate(quotation.id, 'Approved')}
+                              >
+                                <CheckCircle className="mr-1 h-4 w-4" />
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleOptimisticStatusUpdate(quotation.id, 'Rejected')}
+                              >
+                                <XCircle className="mr-1 h-4 w-4" />
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                          {quotation.status === 'Approved' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              className="cursor-not-allowed opacity-60 border-green-600 text-green-600"
+                            >
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Approved
+                            </Button>
+                          )}
+                          {quotation.status === 'Rejected' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                              className="cursor-not-allowed opacity-60 border-red-600 text-red-600"
+                            >
+                              <XCircle className="mr-1 h-4 w-4" />
+                              Rejected
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
               </Card>
             );
           })}
