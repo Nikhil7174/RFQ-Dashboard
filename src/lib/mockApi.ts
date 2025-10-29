@@ -81,11 +81,110 @@ let quotationsData: Quotation[] = [
     description: 'Industrial piping and conduits',
     comments: [],
   },
+  {
+    id: 'Q-106',
+    client: 'Global Construction Ltd',
+    amount: 125000.00,
+    status: 'Pending',
+    last_updated: new Date(Date.now() - 86400000).toISOString(),
+    description: 'Large scale commercial project with multiple phases',
+    comments: [],
+  },
+  {
+    id: 'Q-107',
+    client: 'TechCorp Solutions',
+    amount: 78900.50,
+    status: 'Approved',
+    last_updated: new Date(Date.now() - 172800000).toISOString(),
+    description: 'Data center electrical infrastructure',
+    comments: [],
+  },
+  {
+    id: 'Q-108',
+    client: 'Metro Builders',
+    amount: 23400.75,
+    status: 'Rejected',
+    last_updated: new Date(Date.now() - 259200000).toISOString(),
+    description: 'Residential complex electrical work',
+    comments: [],
+  },
+  {
+    id: 'Q-109',
+    client: 'Industrial Systems Inc',
+    amount: 156700.00,
+    status: 'Pending',
+    last_updated: new Date(Date.now() - 43200000).toISOString(),
+    description: 'Heavy industrial electrical installation',
+    comments: [],
+  },
+  {
+    id: 'Q-110',
+    client: 'Smart City Developers',
+    amount: 98750.25,
+    status: 'Approved',
+    last_updated: new Date(Date.now() - 86400000).toISOString(),
+    description: 'Smart city infrastructure project',
+    comments: [],
+  },
+  {
+    id: 'Q-111',
+    client: 'Green Energy Corp',
+    amount: 67800.00,
+    status: 'Pending',
+    last_updated: new Date(Date.now() - 129600000).toISOString(),
+    description: 'Renewable energy electrical systems',
+    comments: [],
+  },
+  {
+    id: 'Q-112',
+    client: 'Urban Planning Group',
+    amount: 45600.00,
+    status: 'Rejected',
+    last_updated: new Date(Date.now() - 345600000).toISOString(),
+    description: 'Urban development electrical planning',
+    comments: [],
+  },
+  {
+    id: 'Q-113',
+    client: 'Future Tech Ltd',
+    amount: 112300.50,
+    status: 'Approved',
+    last_updated: new Date(Date.now() - 216000000).toISOString(),
+    description: 'Advanced technology facility electrical work',
+    comments: [],
+  },
+  {
+    id: 'Q-114',
+    client: 'Mega Construction Co',
+    amount: 189500.75,
+    status: 'Pending',
+    last_updated: new Date(Date.now() - 172800000).toISOString(),
+    description: 'Mega construction project electrical systems',
+    comments: [],
+  },
+  {
+    id: 'Q-115',
+    client: 'Innovation Hub',
+    amount: 54300.00,
+    status: 'Approved',
+    last_updated: new Date(Date.now() - 259200000).toISOString(),
+    description: 'Innovation center electrical infrastructure',
+    comments: [],
+  },
+  {
+    id: 'Q-116',
+    client: 'City Infrastructure',
+    amount: 234600.00,
+    status: 'Pending',
+    last_updated: new Date(Date.now() - 43200000).toISOString(),
+    description: 'City-wide infrastructure electrical upgrade',
+    comments: [],
+  },
 ];
 
 export const mockApi = {
-  // Get all quotations with optional filters
-  getQuotations: async (params?: { search?: string; status?: string }) => {
+  // Get all quotations with optional filters and pagination
+  getQuotations: async (params?: { search?: string; status?: string; page?: number; limit?: number }) => {
     await delay();
     let filtered = [...quotationsData];
 
@@ -100,7 +199,22 @@ export const mockApi = {
       filtered = filtered.filter(q => q.status === params.status);
     }
 
-    return filtered;
+    // Calculate pagination
+    const page = params?.page || 1;
+    const limit = params?.limit || 8;
+    const totalItems = filtered.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedData = filtered.slice(startIndex, endIndex);
+
+    return {
+      data: paginatedData,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      itemsPerPage: limit,
+    };
   },
 
   // Get single quotation by ID

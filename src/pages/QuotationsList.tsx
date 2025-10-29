@@ -15,7 +15,7 @@ import { StatusPill } from '@/components/StatusPill';
 import { EmptyState } from '@/components/EmptyState';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { getAvailableActions } from '@/lib/permissions';
-import { Search, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Search, FileText, CheckCircle, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Debounce utility
@@ -46,9 +46,11 @@ export default function QuotationsList() {
     loading,
     error,
     filters,
+    pagination,
     user,
     handleSearch,
     handleStatusFilter,
+    handlePageChange,
     handleOptimisticStatusUpdate,
   } = useQuotations();
 
@@ -249,6 +251,53 @@ export default function QuotationsList() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {quotations.length > 0 && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-muted-foreground">
+            Showing {((pagination.currentPage - 1) * pagination.itemsPerPage) + 1} to{' '}
+            {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of{' '}
+            {pagination.totalItems} results
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={pagination.currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={page === pagination.currentPage ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handlePageChange(page)}
+                  className="w-8 h-8 p-0"
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={pagination.currentPage === pagination.totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

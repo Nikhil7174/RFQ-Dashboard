@@ -11,6 +11,12 @@ interface QuotationsState {
     search: string;
     status: string;
   };
+  pagination: {
+    currentPage: number;
+    itemsPerPage: number;
+    totalItems: number;
+    totalPages: number;
+  };
 }
 
 const initialState: QuotationsState = {
@@ -22,12 +28,18 @@ const initialState: QuotationsState = {
     search: '',
     status: 'all',
   },
+  pagination: {
+    currentPage: 1,
+    itemsPerPage: 8,
+    totalItems: 0,
+    totalPages: 0,
+  },
 };
 
 // Async thunks
 export const fetchQuotations = createAsyncThunk(
   'quotations/fetchQuotations',
-  async (params: { search?: string; status?: string } = {}) => {
+  async (params: { search?: string; status?: string; page?: number; limit?: number } = {}) => {
     const response = await mockApi.getQuotations(params);
     return response;
   }
@@ -102,10 +114,21 @@ const quotationsSlice = createSlice({
     setFilters: (state, action: PayloadAction<{ search?: string; status?: string }>) => {
       if (action.payload.search !== undefined) {
         state.filters.search = action.payload.search;
+        // Reset to first page when searching
+        state.pagination.currentPage = 1;
       }
       if (action.payload.status !== undefined) {
         state.filters.status = action.payload.status;
+        // Reset to first page when filtering by status
+        state.pagination.currentPage = 1;
       }
+    },
+    setPage: (state, action: PayloadAction<number>) => {
+      state.pagination.currentPage = action.payload;
+    },
+    setPagination: (state, action: PayloadAction<{ totalItems: number; totalPages: number }>) => {
+      state.pagination.totalItems = action.payload.totalItems;
+      state.pagination.totalPages = action.payload.totalPages;
     },
     clearError: (state) => {
       state.error = null;
@@ -141,7 +164,9 @@ const quotationsSlice = createSlice({
       })
       .addCase(fetchQuotations.fulfilled, (state, action) => {
         state.loading = false;
-        state.quotations = action.payload;
+        state.quotations = action.payload.data;
+        state.pagination.totalItems = action.payload.totalItems;
+        state.pagination.totalPages = action.payload.totalPages;
       })
       .addCase(fetchQuotations.rejected, (state, action) => {
         state.loading = false;
@@ -204,6 +229,6 @@ const quotationsSlice = createSlice({
   },
 });
 
-export const { setFilters, clearError, optimisticStatusUpdate, rollbackStatusUpdate } =
+export const { setFilters, setPage, setPagination, clearError, optimisticStatusUpdate, rollbackStatusUpdate } =
   quotationsSlice.actions;
 export default quotationsSlice.reducer;

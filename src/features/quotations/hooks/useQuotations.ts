@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   fetchQuotations,
   setFilters,
+  setPage,
   optimisticStatusUpdate,
   rollbackStatusUpdate,
   updateQuotationStatus,
@@ -12,12 +13,16 @@ import { toast } from 'sonner';
 
 export const useQuotations = () => {
   const dispatch = useAppDispatch();
-  const { quotations, loading, error, filters } = useAppSelector((state) => state.quotations);
+  const { quotations, loading, error, filters, pagination } = useAppSelector((state) => state.quotations);
   const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchQuotations(filters));
-  }, [dispatch, filters]);
+    dispatch(fetchQuotations({
+      ...filters,
+      page: pagination.currentPage,
+      limit: pagination.itemsPerPage,
+    }));
+  }, [dispatch, filters, pagination.currentPage, pagination.itemsPerPage]);
 
   const handleSearch = useCallback(
     (search: string) => {
@@ -29,6 +34,13 @@ export const useQuotations = () => {
   const handleStatusFilter = useCallback(
     (status: string) => {
       dispatch(setFilters({ status }));
+    },
+    [dispatch]
+  );
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      dispatch(setPage(page));
     },
     [dispatch]
   );
@@ -63,9 +75,11 @@ export const useQuotations = () => {
     loading,
     error,
     filters,
+    pagination,
     user,
     handleSearch,
     handleStatusFilter,
+    handlePageChange,
     handleOptimisticStatusUpdate,
   };
 };
