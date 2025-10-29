@@ -26,11 +26,6 @@ npm run dev
 npm run build
 ```
 
-**Default Login Credentials:**
-- **Manager**: manager@example.com / password123
-- **Sales Rep**: sales@example.com / password123
-- **Viewer**: viewer@example.com / password123
-
 ---
 
 ## ✨ Core Features Implemented
@@ -470,4 +465,4 @@ This application demonstrates:
 
 ---
 
-**Built with ❤️ for Pactle** | React 18 • TypeScript • Redux Toolkit • Tailwind CSS
+**Built with ❤️ for Pactle** | React 18 • TypeScript • Redux Toolkit • Tailwind CSS • Shadcn 
