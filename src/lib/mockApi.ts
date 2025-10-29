@@ -58,24 +58,7 @@ let quotationsData: Quotation[] = [
         changedAt: new Date(Date.now() - 86400000).toISOString(),
       },
     ],
-    comments: [
-      {
-        id: 1,
-        author: 'John Doe',
-        role: 'sales_rep',
-        text: 'Client requested discount.',
-        timestamp: new Date(Date.now() - 86400000).toISOString(),
-        replies: [
-          {
-            id: 11,
-            author: 'Jane Smith',
-            role: 'manager',
-            text: 'Approved 5% discount.',
-            timestamp: new Date(Date.now() - 43200000).toISOString(),
-          },
-        ],
-      },
-    ],
+    comments: [],
   },
   {
     id: 'Q-102',
@@ -165,15 +148,7 @@ let quotationsData: Quotation[] = [
         reason: 'Pricing not competitive with market rates',
       },
     ],
-    comments: [
-      {
-        id: 2,
-        author: 'Sarah Johnson',
-        role: 'sales_rep',
-        text: 'Client asked for better pricing',
-        timestamp: new Date(Date.now() - 259200000).toISOString(),
-      },
-    ],
+    comments: [],
   },
   {
     id: 'Q-104',

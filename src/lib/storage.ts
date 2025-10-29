@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   USER: 'pactle_user',
   USERS_DB: 'pactle_users_db',
   QUOTATION_COMMENTS: 'pactle_quotation_comments',
+  COMMENT_DRAFTS: 'pactle_comment_drafts',
 } as const;
 
 export const storage = {
@@ -63,6 +64,31 @@ export const storage = {
     const map = storage.getQuotationCommentsMap();
     map[quotationId] = comments;
     storage.setQuotationCommentsMap(map);
+  },
+
+  // Comment drafts: { [quotationId]: { comment: string, replies: { [commentId]: string } } }
+  getCommentDraft: (quotationId: string): { comment: string; replies: Record<number, string> } | null => {
+    const drafts = localStorage.getItem(STORAGE_KEYS.COMMENT_DRAFTS);
+    if (!drafts) return null;
+    
+    const parsedDrafts = JSON.parse(drafts);
+    return parsedDrafts[quotationId] ?? null;
+  },
+
+  setCommentDraft: (quotationId: string, draft: { comment: string; replies: Record<number, string> }) => {
+    const drafts = localStorage.getItem(STORAGE_KEYS.COMMENT_DRAFTS);
+    const parsedDrafts = drafts ? JSON.parse(drafts) : {};
+    parsedDrafts[quotationId] = draft;
+    localStorage.setItem(STORAGE_KEYS.COMMENT_DRAFTS, JSON.stringify(parsedDrafts));
+  },
+
+  clearCommentDraft: (quotationId: string) => {
+    const drafts = localStorage.getItem(STORAGE_KEYS.COMMENT_DRAFTS);
+    if (!drafts) return;
+    
+    const parsedDrafts = JSON.parse(drafts);
+    delete parsedDrafts[quotationId];
+    localStorage.setItem(STORAGE_KEYS.COMMENT_DRAFTS, JSON.stringify(parsedDrafts));
   },
 
   clear: () => {

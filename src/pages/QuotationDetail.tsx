@@ -57,6 +57,10 @@ export default function QuotationDetail() {
     amount: 0,
     description: '',
   });
+  const [validationErrors, setValidationErrors] = useState({
+    client: '',
+    amount: '',
+  });
 
   // Warn before leaving page with unsaved changes (browser navigation)
   useEffect(() => {
@@ -104,6 +108,57 @@ export default function QuotationDetail() {
     };
   }, [isDirty, location.pathname]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        // Allow Escape to work in inputs
+        if (e.key === 'Escape' && isEditing) {
+          handleCancel();
+        }
+        return;
+      }
+
+      if (!quotation || !user) return;
+
+      // Calculate actions within the effect to avoid dependency issues
+      const actions = getAvailableActions(user.role, quotation.status);
+
+      switch (e.key.toLowerCase()) {
+        case 'a':
+          if (actions.canApprove && !isEditing) {
+            e.preventDefault();
+            handleApprove();
+          }
+          break;
+        case 'r':
+          if (actions.canReject && !isEditing) {
+            e.preventDefault();
+            // Trigger rejection - we'll need to open the dialog programmatically
+            document.getElementById('reject-trigger-button')?.click();
+          }
+          break;
+        case 'e':
+          if (actions.canEdit && !isEditing) {
+            e.preventDefault();
+            handleEdit();
+          }
+          break;
+        case 'escape':
+          if (isEditing) {
+            e.preventDefault();
+            handleCancel();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [quotation, user, isEditing]);
+
   const handleEdit = () => {
     if (quotation) {
       setEditedData({
@@ -117,9 +172,14 @@ export default function QuotationDetail() {
   };
 
   const handleSave = async () => {
+    if (hasValidationErrors()) {
+      toast.error('Please fix the validation errors before saving');
+      return;
+    }
     await handleUpdateDetails(editedData);
     setIsEditing(false);
     setIsDirty(false);
+    setValidationErrors({ client: '', amount: '' });
   };
 
   const handleCancel = () => {
@@ -129,11 +189,51 @@ export default function QuotationDetail() {
     }
     setIsEditing(false);
     setIsDirty(false);
+    setValidationErrors({ client: '', amount: '' });
+  };
+
+  const validateField = (field: string, value: any): string => {
+    switch (field) {
+      case 'client':
+        if (!value || value.trim().length === 0) {
+          return 'Client name is required';
+        }
+        if (value.trim().length < 2) {
+          return 'Client name must be at least 2 characters';
+        }
+        return '';
+      case 'amount':
+        if (!value || value <= 0) {
+          return 'Amount must be greater than ₹0';
+        }
+        if (value > 10000000) {
+          return 'Amount seems unusually high. Please verify.';
+        }
+        return '';
+      default:
+        return '';
+    }
   };
 
   const handleFieldChange = (field: keyof typeof editedData, value: any) => {
     setEditedData(prev => ({ ...prev, [field]: value }));
     setIsDirty(true);
+    
+    // Real-time validation with debounce
+    const error = validateField(field, value);
+    setValidationErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const hasValidationErrors = (): boolean => {
+    const clientError = validateField('client', editedData.client);
+    const amountError = validateField('amount', editedData.amount);
+    
+    setValidationErrors({
+      client: clientError,
+      amount: amountError,
+    });
+
+    return !!(clientError || amountError);
   };
 
   const handleApprove = async () => {
@@ -241,8 +341,11 @@ export default function QuotationDetail() {
                   <Input
                     value={editedData.client}
                     onChange={(e) => handleFieldChange('client', e.target.value)}
-                    className="max-w-sm"
+                    className={`max-w-sm ${validationErrors.client ? 'border-red-500' : ''}`}
                   />
+                  {validationErrors.client && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.client}</p>
+                  )}
                 </div>
               ) : (
                 <>
@@ -267,12 +370,17 @@ export default function QuotationDetail() {
             <div>
               <label className="text-sm font-medium text-muted-foreground">Amount</label>
               {isEditing && actions?.canEdit ? (
-                <Input
-                  type="number"
-                  value={editedData.amount}
-                  onChange={(e) => handleFieldChange('amount', Number(e.target.value))}
-                  className="mt-1"
-                />
+                <div>
+                  <Input
+                    type="number"
+                    value={editedData.amount}
+                    onChange={(e) => handleFieldChange('amount', Number(e.target.value))}
+                    className={`mt-1 ${validationErrors.amount ? 'border-red-500' : ''}`}
+                  />
+                  {validationErrors.amount && (
+                    <p className="text-xs text-red-600 mt-1">{validationErrors.amount}</p>
+                  )}
+                </div>
               ) : (
                 <p className="mt-1 text-2xl font-semibold">{formatCurrency(quotation.amount)}</p>
               )}

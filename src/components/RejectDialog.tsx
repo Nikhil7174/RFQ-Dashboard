@@ -34,7 +34,7 @@ export const RejectDialog = ({ onReject, trigger }: RejectDialogProps) => {
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {trigger || (
-          <Button variant="destructive">
+          <Button variant="destructive" id="reject-trigger-button">
             <XCircle className="mr-1 h-4 w-4" />
             Reject Quotation
           </Button>
