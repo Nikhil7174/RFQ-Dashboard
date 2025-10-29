@@ -12,6 +12,7 @@ import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import QuotationsList from "./pages/QuotationsList";
 import QuotationDetail from "./pages/QuotationDetail";
+import QuotationPrint from "./pages/QuotationPrint";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,16 @@ const App = () => (
               <Route index element={<QuotationsList />} />
               <Route path="quotations/:id" element={<QuotationDetail />} />
             </Route>
+
+            {/* Print route - no layout */}
+            <Route
+              path="/quotations/:id/print"
+              element={
+                <AuthGuard>
+                  <QuotationPrint />
+                </AuthGuard>
+              }
+            />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

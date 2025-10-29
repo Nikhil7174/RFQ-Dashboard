@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { RejectDialog } from '@/components/RejectDialog';
 import { StatusTimeline } from '@/components/StatusTimeline';
 import { getAvailableActions } from '@/lib/permissions';
-import { ArrowLeft, Edit2, Save, X, MessageSquare, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Edit2, Save, X, MessageSquare, CheckCircle, Printer } from 'lucide-react';
 import { CommentsSection } from '@/features/quotations/components/CommentsSection';
 import { useAppDispatch } from '@/store/hooks';
 import { updateQuotationStatus, optimisticStatusUpdate, rollbackStatusUpdate } from '@/store/slices/quotationsSlice';
@@ -327,6 +327,14 @@ export default function QuotationDetail() {
           <h1 className="text-2xl font-bold">Quotation Details</h1>
           <p className="text-sm text-muted-foreground">View and manage quotation information</p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open(`/quotations/${id}/print`, '_blank')}
+        >
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
       </div>
 
       {/* Main Details Card */}

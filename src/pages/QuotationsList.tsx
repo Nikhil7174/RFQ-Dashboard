@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useMemo, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useQuotations } from '@/features/quotations/hooks/useQuotations';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,11 +35,15 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
+const SCROLL_POSITION_KEY = 'quotations_list_scroll_position';
+
 export default function QuotationsList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = React.useState(searchParams.get('search') || '');
   const debouncedSearch = useDebounce(searchInput, 300);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const {
     quotations,
@@ -86,7 +90,25 @@ export default function QuotationsList() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
+  // Restore scroll position when returning from detail page
+  useEffect(() => {
+    const savedPosition = sessionStorage.getItem(SCROLL_POSITION_KEY);
+    if (savedPosition && !loading) {
+      const position = parseInt(savedPosition, 10);
+      setTimeout(() => {
+        window.scrollTo(0, position);
+        sessionStorage.removeItem(SCROLL_POSITION_KEY);
+      }, 100);
+    }
+  }, [loading]);
+
+  // Save scroll position before navigating
+  const saveScrollPosition = useCallback(() => {
+    sessionStorage.setItem(SCROLL_POSITION_KEY, window.scrollY.toString());
+  }, []);
+
   const handleQuotationClick = (id: string) => {
+    saveScrollPosition();
     navigate(`/quotations/${id}`);
   };
 
